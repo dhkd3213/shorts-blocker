@@ -46,14 +46,9 @@ No `icons/` directory in v0.1 — manifest omits the `icons` key so Chrome doesn
 - Create: `shorts-blocker/src/content.css` (empty)
 - Create: `shorts-blocker/.gitignore`
 
-- [ ] **Step 1.1: Initialize git in the project folder**
+(Git is already initialized in `shorts-blocker/`; the planning docs are the first commit.)
 
-```bash
-cd shorts-blocker
-git init
-```
-
-- [ ] **Step 1.2: Write `.gitignore`**
+- [ ] **Step 1.1: Write `.gitignore`**
 
 ```
 node_modules/
@@ -61,7 +56,7 @@ node_modules/
 *.log
 ```
 
-- [ ] **Step 1.3: Write `manifest.json`**
+- [ ] **Step 1.2: Write `manifest.json`**
 
 ```json
 {
@@ -92,25 +87,25 @@ node_modules/
 }
 ```
 
-- [ ] **Step 1.4: Write stub `src/background.js`**
+- [ ] **Step 1.3: Write stub `src/background.js`**
 
 ```js
 console.log('[shorts-blocker] background loaded');
 ```
 
-- [ ] **Step 1.5: Write stub `src/content.js`**
+- [ ] **Step 1.4: Write stub `src/content.js`**
 
 ```js
 console.log('[shorts-blocker] content loaded on', location.href);
 ```
 
-- [ ] **Step 1.6: Write empty `src/content.css`**
+- [ ] **Step 1.5: Write empty `src/content.css`**
 
 ```css
 /* CSS rules added in Task 5 */
 ```
 
-- [ ] **Step 1.7: Manual verify in Chrome**
+- [ ] **Step 1.6: Manual verify in Chrome**
 
 1. Open `chrome://extensions`
 2. Toggle **Developer mode** on (top-right)
@@ -121,7 +116,7 @@ console.log('[shorts-blocker] content loaded on', location.href);
 
 Expected: both log lines visible. If not, check manifest syntax with `node -e "JSON.parse(require('fs').readFileSync('manifest.json'))"`.
 
-- [ ] **Step 1.8: Commit**
+- [ ] **Step 1.7: Commit**
 
 ```bash
 git add manifest.json src/ .gitignore
