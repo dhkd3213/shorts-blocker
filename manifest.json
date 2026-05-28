@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "Shorts Blocker",
+  "version": "0.1.0",
+  "description": "Limit YouTube Shorts to 10 minutes a day and hide entry points.",
+  "permissions": ["storage", "alarms", "tabs"],
+  "host_permissions": ["*://*.youtube.com/*"],
+  "background": {
+    "service_worker": "src/background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*.youtube.com/*"],
+      "js": ["src/content.js"],
+      "css": ["src/content.css"],
+      "run_at": "document_start"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["src/blocked.html", "src/blocked.js", "src/blocked.css"],
+      "matches": ["*://*.youtube.com/*"]
+    }
+  ]
+}
