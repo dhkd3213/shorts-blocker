@@ -59,10 +59,12 @@ chrome.runtime.onStartup.addListener(() => {
   scheduleMidnightAlarm();
 });
 
-chrome.alarms.onAlarm.addListener(async (alarm) => {
+chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name !== ALARM_NAME) return;
-  const state = await loadState();
-  await saveState(resetDay(state, new Date()));
+  serialize(async () => {
+    const state = await loadState();
+    await saveState(resetDay(state, new Date()));
+  });
 });
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
