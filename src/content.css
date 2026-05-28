@@ -1,1 +1,19 @@
-/* CSS rules added in Task 5 */
+/* Home page Shorts shelves (two variants YouTube uses) */
+ytd-rich-section-renderer:has(ytd-rich-shelf-renderer[is-shorts]) {
+  display: none !important;
+}
+ytd-reel-shelf-renderer {
+  display: none !important;
+}
+
+/* Left sidebar Shorts entry — full guide */
+ytd-guide-entry-renderer a[title="Shorts"],
+ytd-guide-entry-renderer a[title="쇼츠"] {
+  display: none !important;
+}
+
+/* Left sidebar Shorts entry — mini (collapsed) guide */
+ytd-mini-guide-entry-renderer[aria-label="Shorts"],
+ytd-mini-guide-entry-renderer[aria-label="쇼츠"] {
+  display: none !important;
+}
