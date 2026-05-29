@@ -1,38 +1,45 @@
-# Shorts Blocker
+# 쇼츠블럭 (Shorts Blocker)
 
-Limit YouTube Shorts to 10 minutes per day. Hides home Shorts shelf and sidebar Shorts entry.
+유튜브 쇼츠 시청 시간을 하루 N분으로 제한하고, 홈·사이드바의 쇼츠 진입점을 숨겨주는 Chrome 확장 프로그램입니다.
 
-## Install (dev mode)
+## 기능
 
-1. Clone this repo
-2. Open `chrome://extensions` in Chrome
-3. Toggle **Developer mode** (top-right) on
-4. Click **Load unpacked**
-5. Select the `shorts-blocker/` folder
+- 하루 쇼츠 시청 시간 제한 (기본 10분, 1~120분 조절 가능)
+- 한도 초과 시 차단 페이지로 리다이렉트
+- 차단 풀기: 30초 대기 + 2번 확인 (충동 차단용 마찰)
+- 홈 쇼츠 shelf · 사이드바 쇼츠 탭 숨김
+- Off 모드: 15분 / 1시간 / 무제한 (Off 중에도 사용 시간은 정직하게 카운트)
+- 자정 자동 리셋
 
-## Usage
+## 설치 (개발자 모드)
 
-- Visit `youtube.com/shorts` like normal
-- After 10 minutes of visible watch time today, you're redirected to a block page
-- Click "10분만 더 보기" → 30s wait → 2× confirm → 10-minute bypass
-- Counter resets at local midnight automatically
+1. 이 레포를 클론
+2. Chrome에서 `chrome://extensions` 열기
+3. 우측 상단 **개발자 모드** 켜기
+4. **압축해제된 확장 프로그램을 로드** 클릭
+5. `shorts-blocker/` 폴더 선택
 
-## Configure
+## 사용법
 
-In v0.1 the limit is hardcoded to 10 minutes. To change it, edit `DAILY_LIMIT_MS` in `src/lib/state.js`.
+- 평소처럼 `youtube.com/shorts` 시청
+- 하루 한도(기본 10분)를 다 쓰면 차단 페이지로 이동
+- 툴바의 쇼츠블럭 아이콘 클릭 → 팝업에서 한도 조절 / Off 설정
+- Off는 차단만 멈춤. 시청 시간은 계속 카운트되어 "오늘 얼마나 봤는지" 확인 가능
 
-## Reset counter manually
+## 개인정보
 
-Open the extension's service worker DevTools (`chrome://extensions` → **Service worker** link), then:
+어떤 데이터도 수집·전송하지 않습니다. 모든 설정/사용 시간은 브라우저 로컬에만 저장됩니다.
+전체 방침: [docs/privacy.html](docs/privacy.html)
 
-```js
-await chrome.storage.local.clear()
-```
-
-## Develop
+## 개발
 
 ```bash
-npm test     # run unit tests for src/lib/state.js
+npm test     # src/lib/state.js 단위 테스트
+node --check src/background.js   # 문법 체크
 ```
 
-After editing extension files, reload the extension from `chrome://extensions`.
+확장 파일 수정 후 `chrome://extensions`에서 새로고침하세요.
+
+## 라이선스
+
+MIT — [LICENSE](LICENSE)
