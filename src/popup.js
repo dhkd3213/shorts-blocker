@@ -1,29 +1,33 @@
 const $ = (id) => document.getElementById(id);
+const R = 68;
+const C = 2 * Math.PI * R;
 
-function fmtDuration(ms) {
-  const totalSec = Math.floor(ms / 1000);
-  const m = Math.floor(totalSec / 60);
-  const s = totalSec % 60;
-  return m === 0 ? `${s}초` : `${m}분 ${s}초`;
+function cssVar(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 }
 
-function fmtLimitLabel(min) {
+function fmtClock(ms) {
+  const s = Math.floor(ms / 1000);
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+  return `${m}:${String(sec).padStart(2, '0')}`;
+}
+
+function fmtMinLabel(min) {
   if (min < 60) return `${min}분`;
   const h = Math.floor(min / 60);
-  const rem = min % 60;
-  return rem === 0 ? `${h}시간` : `${h}시간 ${rem}분`;
-}
-
-function offState(s) {
-  const off = s.offUntil;
-  if (off == null) return { active: false };
-  if (off === 'infinite') return { active: true, infinite: true };
-  const remaining = off - s.now;
-  if (remaining <= 0) return { active: false };
-  return { active: true, infinite: false, remainingMs: remaining };
+  const r = min % 60;
+  return r === 0 ? `${h}시간` : `${h}시간 ${r}분`;
 }
 
 let status = null;
+let currentMin = 10;
+
+function isOff(s) {
+  return s.offUntil != null && s.now < s.offUntil;
+}
 
 async function refresh() {
   status = await chrome.runtime.sendMessage({ type: 'getStatus' });
@@ -32,54 +36,60 @@ async function refresh() {
 
 function render() {
   if (!status?.ok) return;
-  const limitMin = Math.round(status.dailyLimitMs / 60000);
-  const off = offState(status);
+  const off = isOff(status);
+  currentMin = Math.round(status.dailyLimitMs / 60000);
 
-  if (off.active) {
-    $('status-badge').textContent = off.infinite ? 'OFF' : `OFF · ${Math.ceil(off.remainingMs / 60000)}분`;
-    $('status-badge').className = 'badge off';
-  } else {
-    $('status-badge').textContent = '✓ ON';
-    $('status-badge').className = 'badge on';
+  $('power').checked = !off;
+
+  const pct = status.dailyLimitMs > 0 ? status.todayUsageMs / status.dailyLimitMs : 0;
+  const prog = $('ring-prog');
+  prog.style.strokeDasharray = C;
+  prog.style.strokeDashoffset = C * (1 - Math.min(pct, 1));
+  let color = cssVar('--green');
+  if (pct >= 1) color = cssVar('--red');
+  else if (pct >= 0.7) color = cssVar('--amber');
+  prog.style.stroke = off ? '#6a6a6a' : color;
+
+  $('usage').textContent = fmtClock(status.todayUsageMs);
+  $('limit-of').textContent = fmtClock(status.dailyLimitMs);
+  $('cap').textContent = off ? 'Off · 카운트만' : '오늘 시청';
+  $('ring-wrap').classList.toggle('off', off);
+
+  $('off-banner').classList.toggle('hidden', !off);
+  if (off) {
+    const remainMin = Math.max(1, Math.ceil((status.offUntil - status.now) / 60000));
+    $('off-remain').textContent = `${remainMin}분 후 자동 ON`;
   }
 
-  $('usage-note').textContent = off.active ? '(Off 중에도 카운트)' : '';
-  $('usage-text').textContent = `${fmtDuration(status.todayUsageMs)} / ${fmtLimitLabel(limitMin)}`;
-  const pct = status.dailyLimitMs > 0 ? (status.todayUsageMs / status.dailyLimitMs) * 100 : 0;
-  $('usage-bar').style.width = Math.min(100, pct) + '%';
-  $('usage-bar').classList.toggle('over', pct >= 100);
-
-  $('limit-slider').value = limitMin;
-  $('limit-value').textContent = fmtLimitLabel(limitMin);
-
-  $('on-controls').classList.toggle('hidden', off.active);
-  $('on-btn').classList.toggle('hidden', !off.active);
-  $('off-menu').classList.add('hidden');
+  $('limit-val').textContent = fmtMinLabel(currentMin);
+  document.querySelectorAll('.chip').forEach((c) => {
+    c.classList.toggle('active', Number(c.dataset.min) === currentMin);
+  });
 }
 
-$('limit-slider').addEventListener('input', () => {
-  $('limit-value').textContent = fmtLimitLabel(Number($('limit-slider').value));
-});
-$('limit-slider').addEventListener('change', async () => {
-  const min = Number($('limit-slider').value);
+async function applyLimit(min) {
+  min = Math.max(1, Math.min(120, min));
+  currentMin = min;
+  $('limit-val').textContent = fmtMinLabel(min);
+  document.querySelectorAll('.chip').forEach((c) => c.classList.toggle('active', Number(c.dataset.min) === min));
   await chrome.runtime.sendMessage({ type: 'setLimit', limitMs: min * 60000 });
   refresh();
-});
+}
 
-$('off-btn').addEventListener('click', () => {
-  $('off-menu').classList.toggle('hidden');
-});
-document.querySelectorAll('.off-opt').forEach((b) => {
-  b.addEventListener('click', async () => {
-    await chrome.runtime.sendMessage({ type: 'setOff', mode: b.dataset.mode });
-    refresh();
-  });
-});
-
-$('on-btn').addEventListener('click', async () => {
-  await chrome.runtime.sendMessage({ type: 'turnOn' });
+$('power').addEventListener('change', async () => {
+  if ($('power').checked) {
+    await chrome.runtime.sendMessage({ type: 'turnOn' });
+  } else {
+    await chrome.runtime.sendMessage({ type: 'setOff' });
+  }
   refresh();
 });
 
+document.querySelectorAll('.chip').forEach((c) => {
+  c.addEventListener('click', () => applyLimit(Number(c.dataset.min)));
+});
+$('minus').addEventListener('click', () => applyLimit(currentMin - 1));
+$('plus').addEventListener('click', () => applyLimit(currentMin + 1));
+
 refresh();
-setInterval(refresh, 30000);
+setInterval(refresh, 15000);

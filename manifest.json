@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "쇼츠블럭",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "유튜브 쇼츠 시청 시간을 하루 N분으로 제한하고, 홈·사이드바의 쇼츠 진입점을 숨겨주는 확장 프로그램입니다.",
   "permissions": ["storage", "alarms", "tabs"],
   "host_permissions": ["*://*.youtube.com/*"],

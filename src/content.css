@@ -1,4 +1,4 @@
-/* Hidden only while ON (no .shorts-blocker-off class on <html>) */
+/* ---- Shorts UI suppression (only while ON, i.e. no .shorts-blocker-off on <html>) ---- */
 
 html:not(.shorts-blocker-off) ytd-rich-section-renderer:has(ytd-rich-shelf-renderer[is-shorts]) {
   display: none !important;
@@ -14,3 +14,36 @@ html:not(.shorts-blocker-off) ytd-mini-guide-entry-renderer[aria-label="Shorts"]
 html:not(.shorts-blocker-off) ytd-mini-guide-entry-renderer[aria-label="쇼츠"] {
   display: none !important;
 }
+
+/* ---- on-page usage counter (injected by content.js) ---- */
+#sb-counter {
+  position: fixed !important;
+  left: 16px !important;
+  bottom: 16px !important;
+  z-index: 2147483000 !important;
+  display: none;
+  align-items: center !important;
+  gap: 7px !important;
+  padding: 7px 13px !important;
+  border-radius: 999px !important;
+  background: rgba(18, 18, 18, 0.82) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  backdrop-filter: blur(10px) !important;
+  color: #f2f2f2 !important;
+  font: 700 12.5px/1 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui, sans-serif !important;
+  font-variant-numeric: tabular-nums !important;
+  letter-spacing: 0.01em !important;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45) !important;
+  border: 1px solid rgba(255, 255, 255, 0.09) !important;
+  pointer-events: none !important;
+  user-select: none !important;
+}
+#sb-counter .sb-dot {
+  width: 8px !important;
+  height: 8px !important;
+  border-radius: 50% !important;
+  background: #4fd17a !important;
+  transition: background 0.3s ease !important;
+}
+#sb-counter .sb-sep { opacity: 0.45 !important; margin: 0 1px !important; }
+#sb-counter .sb-lim { color: #9a9a9a !important; }

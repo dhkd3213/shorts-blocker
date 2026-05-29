@@ -5,34 +5,47 @@
   <link rel="stylesheet" href="popup.css" />
 </head>
 <body>
-  <div class="popup">
-    <header class="head">
-      <span class="brand">쇼츠블럭</span>
-      <span id="status-badge" class="badge">…</span>
+  <div class="wrap">
+    <header class="bar">
+      <div class="brand"><span class="brand-dot"></span>쇼츠블럭</div>
+      <label class="switch" title="끄기 / 켜기">
+        <input type="checkbox" id="power" checked />
+        <span class="track"><span class="thumb"></span></span>
+      </label>
     </header>
 
-    <section class="usage">
-      <div class="usage-label">오늘 사용 <span id="usage-note"></span></div>
-      <div class="usage-value" id="usage-text">…</div>
-      <div class="bar"><div id="usage-bar" class="bar-fill"></div></div>
-    </section>
-
-    <section class="limit">
-      <div class="limit-label">하루 한도 · <span id="limit-value">10분</span></div>
-      <input id="limit-slider" type="range" min="1" max="120" value="10" />
-    </section>
-
-    <section class="controls">
-      <div id="on-controls">
-        <button id="off-btn" class="btn" type="button">Off ▾</button>
-        <div id="off-menu" class="off-menu hidden">
-          <button data-mode="15min" class="off-opt" type="button">15분</button>
-          <button data-mode="1hour" class="off-opt" type="button">1시간</button>
-          <button data-mode="infinite" class="off-opt" type="button">무제한</button>
-        </div>
+    <div class="ring-wrap" id="ring-wrap">
+      <svg class="ring" viewBox="0 0 160 160" aria-hidden="true">
+        <circle class="ring-track" cx="80" cy="80" r="68" />
+        <circle class="ring-prog" id="ring-prog" cx="80" cy="80" r="68" />
+      </svg>
+      <div class="ring-center">
+        <div class="usage" id="usage">0:00</div>
+        <div class="limit-of">/ <span id="limit-of">10:00</span></div>
+        <div class="cap" id="cap">오늘 시청</div>
       </div>
-      <button id="on-btn" class="btn primary hidden" type="button">▶ 다시 켜기</button>
-    </section>
+    </div>
+
+    <div class="off-banner hidden" id="off-banner">
+      <span class="zzz">쉬는 중</span>
+      <span id="off-remain">1시간 후 자동 ON</span>
+    </div>
+
+    <div class="limit-card">
+      <div class="limit-head">하루 한도</div>
+      <div class="chips" id="chips">
+        <button class="chip" data-min="5" type="button">5분</button>
+        <button class="chip" data-min="10" type="button">10분</button>
+        <button class="chip" data-min="15" type="button">15분</button>
+        <button class="chip" data-min="30" type="button">30분</button>
+        <button class="chip" data-min="60" type="button">60분</button>
+      </div>
+      <div class="stepper">
+        <button class="step" id="minus" type="button" aria-label="1분 줄이기">−</button>
+        <span class="step-val" id="limit-val">10분</span>
+        <button class="step" id="plus" type="button" aria-label="1분 늘리기">+</button>
+      </div>
+    </div>
   </div>
   <script src="popup.js"></script>
 </body>
