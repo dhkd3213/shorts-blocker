@@ -122,10 +122,11 @@ test('turnOn clears offUntil to null', () => {
 test('setLimit updates dailyLimitMs', () => {
   assert.equal(setLimit(baseSettings(), 300000).dailyLimitMs, 300000);
 });
-test('defaultSettings returns 10min limit and null off', () => {
+test('defaultSettings returns 10min limit, null off, hideShorts on', () => {
   const s = defaultSettings();
   assert.equal(s.dailyLimitMs, DEFAULT_DAILY_LIMIT_MS);
   assert.equal(s.offUntil, null);
+  assert.equal(s.hideShorts, true);
 });
 
 test('resetDay zeros usage AND bonus, updates date', () => {

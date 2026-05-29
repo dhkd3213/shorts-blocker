@@ -10,7 +10,7 @@ export function todayKey(date) {
 }
 
 export function defaultSettings() {
-  return { dailyLimitMs: DEFAULT_DAILY_LIMIT_MS, offUntil: null };
+  return { dailyLimitMs: DEFAULT_DAILY_LIMIT_MS, offUntil: null, hideShorts: true };
 }
 
 export function isOffActive(settings, now) {

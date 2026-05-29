@@ -13,15 +13,19 @@ function isOffActiveLocal(settings, nowMs) {
   return nowMs < off;
 }
 
-async function syncOffClass() {
+async function syncHideClass() {
   const obj = await chrome.storage.local.get('settings');
-  const off = obj.settings && isOffActiveLocal(obj.settings, Date.now());
-  document.documentElement.classList.toggle('shorts-blocker-off', !!off);
+  const s = obj.settings;
+  const off = s && isOffActiveLocal(s, Date.now());
+  const hideEnabled = !s || s.hideShorts !== false; // default ON
+  const shouldHide = hideEnabled && !off;
+  // class "shorts-blocker-nohide" = do NOT hide the Shorts UI
+  document.documentElement.classList.toggle('shorts-blocker-nohide', !shouldHide);
 }
 
-syncOffClass();
+syncHideClass();
 chrome.storage.onChanged.addListener((changes, area) => {
-  if (area === 'local' && changes.settings) syncOffClass();
+  if (area === 'local' && changes.settings) syncHideClass();
 });
 
 // ---- on-page usage counter ----
@@ -60,7 +64,9 @@ function renderCounter(usageMs, limitMs, off) {
   if (off) c = '#ffb15c';
   else if (pct >= 1) c = '#ff5563';
   else if (pct >= 0.7) c = '#ffb15c';
-  el.querySelector('.sb-dot').style.background = c;
+  const dot = el.querySelector('.sb-dot');
+  dot.style.background = c;
+  dot.style.color = c; // drives the glow (box-shadow uses currentColor)
 }
 
 function showCounter(show) {

@@ -139,6 +139,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         await saveSettings(turnOn(settings));
         chrome.alarms.clear(OFF_ALARM);
         sendResponse({ ok: true });
+      } else if (msg?.type === 'setHideShorts') {
+        const settings = await loadSettings();
+        await saveSettings({ ...settings, hideShorts: !!msg.value });
+        sendResponse({ ok: true });
       } else {
         sendResponse({ ok: false, error: 'unknown message type' });
       }

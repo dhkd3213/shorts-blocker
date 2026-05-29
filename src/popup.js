@@ -66,6 +66,8 @@ function render() {
   document.querySelectorAll('.chip').forEach((c) => {
     c.classList.toggle('active', Number(c.dataset.min) === currentMin);
   });
+
+  $('hide-shorts').checked = status.hideShorts !== false;
 }
 
 async function applyLimit(min) {
@@ -92,5 +94,9 @@ document.querySelectorAll('.chip').forEach((c) => {
 $('minus').addEventListener('click', () => applyLimit(currentMin - 1));
 $('plus').addEventListener('click', () => applyLimit(currentMin + 1));
 
+$('hide-shorts').addEventListener('change', async () => {
+  await chrome.runtime.sendMessage({ type: 'setHideShorts', value: $('hide-shorts').checked });
+});
+
 refresh();
-setInterval(refresh, 15000);
+setInterval(refresh, 1000);

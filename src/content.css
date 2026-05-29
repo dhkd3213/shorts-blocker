@@ -1,17 +1,19 @@
-/* ---- Shorts UI suppression (only while ON, i.e. no .shorts-blocker-off on <html>) ---- */
+/* ---- Shorts UI suppression ----
+   Hidden by default; the `shorts-blocker-nohide` class on <html> turns hiding OFF
+   (set by content.js when Off is active OR the user disabled feed-hiding). */
 
-html:not(.shorts-blocker-off) ytd-rich-section-renderer:has(ytd-rich-shelf-renderer[is-shorts]) {
+html:not(.shorts-blocker-nohide) ytd-rich-section-renderer:has(ytd-rich-shelf-renderer[is-shorts]) {
   display: none !important;
 }
-html:not(.shorts-blocker-off) ytd-reel-shelf-renderer {
+html:not(.shorts-blocker-nohide) ytd-reel-shelf-renderer {
   display: none !important;
 }
-html:not(.shorts-blocker-off) ytd-guide-entry-renderer a[title="Shorts"],
-html:not(.shorts-blocker-off) ytd-guide-entry-renderer a[title="쇼츠"] {
+html:not(.shorts-blocker-nohide) ytd-guide-entry-renderer a[title="Shorts"],
+html:not(.shorts-blocker-nohide) ytd-guide-entry-renderer a[title="쇼츠"] {
   display: none !important;
 }
-html:not(.shorts-blocker-off) ytd-mini-guide-entry-renderer[aria-label="Shorts"],
-html:not(.shorts-blocker-off) ytd-mini-guide-entry-renderer[aria-label="쇼츠"] {
+html:not(.shorts-blocker-nohide) ytd-mini-guide-entry-renderer[aria-label="Shorts"],
+html:not(.shorts-blocker-nohide) ytd-mini-guide-entry-renderer[aria-label="쇼츠"] {
   display: none !important;
 }
 
@@ -23,27 +25,30 @@ html:not(.shorts-blocker-off) ytd-mini-guide-entry-renderer[aria-label="쇼츠"]
   z-index: 2147483000 !important;
   display: none;
   align-items: center !important;
-  gap: 7px !important;
-  padding: 7px 13px !important;
+  gap: 8px !important;
+  padding: 8px 15px !important;
   border-radius: 999px !important;
-  background: rgba(18, 18, 18, 0.82) !important;
-  -webkit-backdrop-filter: blur(10px) !important;
-  backdrop-filter: blur(10px) !important;
-  color: #f2f2f2 !important;
-  font: 700 12.5px/1 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui, sans-serif !important;
+  background: rgba(12, 12, 12, 0.5) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(1.2) !important;
+  backdrop-filter: blur(14px) saturate(1.2) !important;
+  color: #ffffff !important;
+  font: 800 14px/1 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui, sans-serif !important;
   font-variant-numeric: tabular-nums !important;
-  letter-spacing: 0.01em !important;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45) !important;
-  border: 1px solid rgba(255, 255, 255, 0.09) !important;
+  letter-spacing: 0.02em !important;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
   pointer-events: none !important;
   user-select: none !important;
 }
 #sb-counter .sb-dot {
-  width: 8px !important;
-  height: 8px !important;
+  width: 10px !important;
+  height: 10px !important;
   border-radius: 50% !important;
   background: #4fd17a !important;
-  transition: background 0.3s ease !important;
+  box-shadow: 0 0 9px currentColor !important;
+  color: #4fd17a !important;
+  transition: background 0.3s ease, color 0.3s ease !important;
 }
-#sb-counter .sb-sep { opacity: 0.45 !important; margin: 0 1px !important; }
-#sb-counter .sb-lim { color: #9a9a9a !important; }
+#sb-counter .sb-sep { opacity: 0.5 !important; margin: 0 1px !important; }
+#sb-counter .sb-lim { color: #c9c9c9 !important; }
