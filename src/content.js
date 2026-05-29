@@ -1,4 +1,5 @@
 const TICK_INTERVAL_MS = 1000;
+const MAINT_INTERVAL_MS = 1500;
 const DEFAULT_LIMIT_MS = 10 * 60 * 1000;
 
 function isOnShorts() {
@@ -13,22 +14,55 @@ function isOffActiveLocal(settings, nowMs) {
   return nowMs < off;
 }
 
-async function syncHideClass() {
-  const obj = await chrome.storage.local.get('settings');
-  const s = obj.settings;
-  const off = s && isOffActiveLocal(s, Date.now());
+let cachedSettings = null;
+
+function isOff() {
+  return cachedSettings && isOffActiveLocal(cachedSettings, Date.now());
+}
+
+// ---- Shorts feed/sidebar suppression toggle ----
+function applyHideClass() {
+  const s = cachedSettings;
   const hideEnabled = !s || s.hideShorts !== false; // default ON
-  const shouldHide = hideEnabled && !off;
+  const shouldHide = hideEnabled && !isOff();
   // class "shorts-blocker-nohide" = do NOT hide the Shorts UI
   document.documentElement.classList.toggle('shorts-blocker-nohide', !shouldHide);
 }
 
-syncHideClass();
-chrome.storage.onChanged.addListener((changes, area) => {
-  if (area === 'local' && changes.settings) syncHideClass();
-});
+// ---- masthead ON/OFF toggle (top-right of YouTube) ----
+let toggleEl = null;
 
-// ---- on-page usage counter ----
+function onToggleClick() {
+  chrome.runtime.sendMessage({ type: isOff() ? 'turnOn' : 'setOff' }).catch(() => {});
+  // storage.onChanged refreshes cachedSettings + re-renders
+}
+
+function renderToggle() {
+  if (!toggleEl) return;
+  const off = isOff();
+  const dot = toggleEl.querySelector('.sb-t-dot');
+  const label = toggleEl.querySelector('.sb-t-label');
+  const color = off ? '#ffb15c' : '#5ee08a';
+  dot.style.background = color;
+  dot.style.color = color;
+  label.textContent = off ? '쇼츠블럭 · OFF' : '쇼츠블럭';
+  toggleEl.title = off ? '꺼짐 (1시간 후 자동 켜짐) — 클릭해서 켜기' : '켜짐 — 클릭해서 끄기';
+}
+
+function ensureMastheadToggle() {
+  if (toggleEl && document.contains(toggleEl)) return;
+  const end = document.querySelector('ytd-masthead #end') || document.querySelector('#masthead #end');
+  if (!end) return;
+  toggleEl = document.createElement('button');
+  toggleEl.id = 'sb-toggle';
+  toggleEl.type = 'button';
+  toggleEl.innerHTML = '<span class="sb-t-dot"></span><span class="sb-t-label">쇼츠블럭</span>';
+  toggleEl.addEventListener('click', onToggleClick);
+  end.insertBefore(toggleEl, end.firstChild);
+  renderToggle();
+}
+
+// ---- on-page usage counter (Shorts only) ----
 let counterEl = null;
 
 function fmtClock(ms) {
@@ -61,7 +95,7 @@ function renderCounter(usageMs, limitMs, off) {
   el.querySelector('.sb-txt').textContent = fmtClock(usageMs);
   el.querySelector('.sb-lim').textContent = fmtClock(limitMs);
   const pct = limitMs > 0 ? usageMs / limitMs : 0;
-  let c = '#4fd17a';
+  let c = '#5ee08a';
   if (off) c = '#ffb15c';
   else if (pct >= 1) c = '#ff5563';
   else if (pct >= 0.7) c = '#ffb15c';
@@ -75,18 +109,35 @@ function showCounter(show) {
   if (el) el.style.display = show ? 'flex' : 'none';
 }
 
-// initial paint from storage (so it shows before the first tick response)
+// ---- init ----
 (async () => {
   const obj = await chrome.storage.local.get(['state', 'settings']);
+  cachedSettings = obj.settings ?? null;
+  applyHideClass();
+  ensureMastheadToggle();
   const usage = obj.state?.todayUsageMs ?? 0;
   const limit = (obj.settings?.dailyLimitMs ?? DEFAULT_LIMIT_MS) + (obj.state?.bonusMs ?? 0);
-  const off = obj.settings && isOffActiveLocal(obj.settings, Date.now());
   if (isOnShorts()) {
-    renderCounter(usage, limit, !!off);
+    renderCounter(usage, limit, !!isOff());
     showCounter(true);
   }
 })();
 
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === 'local' && changes.settings) {
+    cachedSettings = changes.settings.newValue ?? null;
+    applyHideClass();
+    renderToggle();
+  }
+});
+
+// keep the masthead toggle present + correct across SPA navigations
+setInterval(() => {
+  ensureMastheadToggle();
+  renderToggle();
+}, MAINT_INTERVAL_MS);
+
+// tick + counter
 setInterval(async () => {
   const onShorts = isOnShorts();
   showCounter(onShorts);
