@@ -2,8 +2,8 @@ const $ = (id) => document.getElementById(id);
 const R = 68;
 const C = 2 * Math.PI * R;
 
-// 구글폼 만든 뒤 이 URL만 교체하면 됩니다 (예: https://forms.gle/xxxxxxxx)
-const FEEDBACK_URL = 'https://forms.gle/REPLACE_WITH_YOUR_FORM';
+// 피드백/기능요청 구글폼
+const FEEDBACK_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSeqUnz_mqvYl78bOnygtnBnQ-S9ERnt599Borpj3MPh0bNidg/viewform';
 
 function cssVar(name) {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
