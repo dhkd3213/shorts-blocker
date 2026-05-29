@@ -3,11 +3,18 @@ import {
   startBypass,
   resetDay,
   todayKey,
+  applyOff,
+  turnOn,
+  setLimit,
+  isOffActive,
+  defaultSettings,
 } from './lib/state.js';
 
-const STORAGE_KEY = 'state';
+const STATE_KEY = 'state';
+const SETTINGS_KEY = 'settings';
 const SHORTS_URL_MATCH = '*://*.youtube.com/shorts/*';
-const ALARM_NAME = 'daily-reset';
+const RESET_ALARM = 'daily-reset';
+const OFF_ALARM = 'off-expire';
 
 let queue = Promise.resolve();
 function serialize(work) {
@@ -17,20 +24,29 @@ function serialize(work) {
 }
 
 function defaultState() {
-  return {
-    todayUsageMs: 0,
-    todayDateKey: todayKey(new Date()),
-    bypassUntil: null,
-  };
+  return { todayUsageMs: 0, todayDateKey: todayKey(new Date()), bypassUntil: null };
 }
 
 async function loadState() {
-  const obj = await chrome.storage.local.get(STORAGE_KEY);
-  return obj[STORAGE_KEY] ?? defaultState();
+  const obj = await chrome.storage.local.get(STATE_KEY);
+  return obj[STATE_KEY] ?? defaultState();
+}
+async function saveState(state) {
+  await chrome.storage.local.set({ [STATE_KEY]: state });
+}
+async function loadSettings() {
+  const obj = await chrome.storage.local.get(SETTINGS_KEY);
+  return obj[SETTINGS_KEY] ?? defaultSettings();
+}
+async function saveSettings(settings) {
+  await chrome.storage.local.set({ [SETTINGS_KEY]: settings });
 }
 
-async function saveState(state) {
-  await chrome.storage.local.set({ [STORAGE_KEY]: state });
+async function migrateIfNeeded() {
+  const obj = await chrome.storage.local.get(SETTINGS_KEY);
+  if (!obj[SETTINGS_KEY]) {
+    await chrome.storage.local.set({ [SETTINGS_KEY]: defaultSettings() });
+  }
 }
 
 async function broadcastBlock() {
@@ -45,34 +61,46 @@ function scheduleMidnightAlarm() {
   const nextMidnight = new Date(now);
   nextMidnight.setDate(nextMidnight.getDate() + 1);
   nextMidnight.setHours(0, 0, 0, 0);
-  chrome.alarms.create(ALARM_NAME, {
-    when: nextMidnight.getTime(),
-    periodInMinutes: 1440,
-  });
+  chrome.alarms.create(RESET_ALARM, { when: nextMidnight.getTime(), periodInMinutes: 1440 });
+}
+
+function scheduleOffExpire(offUntil) {
+  if (typeof offUntil === 'number') {
+    chrome.alarms.create(OFF_ALARM, { when: offUntil });
+  } else {
+    chrome.alarms.clear(OFF_ALARM);
+  }
 }
 
 chrome.runtime.onInstalled.addListener(() => {
   scheduleMidnightAlarm();
+  migrateIfNeeded();
 });
-
 chrome.runtime.onStartup.addListener(() => {
   scheduleMidnightAlarm();
+  migrateIfNeeded();
 });
 
 chrome.alarms.onAlarm.addListener((alarm) => {
-  if (alarm.name !== ALARM_NAME) return;
-  serialize(async () => {
-    const state = await loadState();
-    await saveState(resetDay(state, new Date()));
-  });
+  if (alarm.name === RESET_ALARM) {
+    serialize(async () => {
+      const state = await loadState();
+      await saveState(resetDay(state, new Date()));
+    });
+  } else if (alarm.name === OFF_ALARM) {
+    serialize(async () => {
+      const settings = await loadSettings();
+      await saveSettings(turnOn(settings));
+    });
+  }
 });
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   serialize(async () => {
     try {
       if (msg?.type === 'tick') {
-        const state = await loadState();
-        const { state: next, blocked } = applyTick(state, new Date(), 1000);
+        const [state, settings] = await Promise.all([loadState(), loadSettings()]);
+        const { state: next, blocked } = applyTick(state, settings, new Date(), 1000);
         await saveState(next);
         if (blocked) await broadcastBlock();
         sendResponse({ ok: true, todayUsageMs: next.todayUsageMs, blocked });
@@ -80,9 +108,29 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         const state = await loadState();
         await saveState(startBypass(state, new Date()));
         sendResponse({ ok: true });
-      } else if (msg?.type === 'getState') {
+      } else if (msg?.type === 'getStatus') {
+        const [state, settings] = await Promise.all([loadState(), loadSettings()]);
+        sendResponse({ ok: true, ...state, ...settings, now: Date.now() });
+      } else if (msg?.type === 'setLimit') {
+        const settings = await loadSettings();
+        const updated = setLimit(settings, msg.limitMs);
+        await saveSettings(updated);
         const state = await loadState();
-        sendResponse(state);
+        if (!isOffActive(updated, new Date()) && state.todayUsageMs >= updated.dailyLimitMs) {
+          await broadcastBlock();
+        }
+        sendResponse({ ok: true });
+      } else if (msg?.type === 'setOff') {
+        const settings = await loadSettings();
+        const updated = applyOff(settings, msg.mode, new Date());
+        await saveSettings(updated);
+        scheduleOffExpire(updated.offUntil);
+        sendResponse({ ok: true });
+      } else if (msg?.type === 'turnOn') {
+        const settings = await loadSettings();
+        await saveSettings(turnOn(settings));
+        chrome.alarms.clear(OFF_ALARM);
+        sendResponse({ ok: true });
       } else {
         sendResponse({ ok: false, error: 'unknown message type' });
       }
@@ -90,5 +138,5 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       sendResponse({ ok: false, error: String(err) });
     }
   });
-  return true; // async sendResponse
+  return true;
 });
