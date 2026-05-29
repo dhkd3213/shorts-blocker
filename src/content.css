@@ -78,6 +78,17 @@ html:not(.shorts-blocker-nohide) ytd-mini-guide-entry-renderer[aria-label="ì‡¼ì¸
   text-align: center !important;
   font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui, sans-serif !important;
 }
+#sb-counter .sb-head { display: flex !important; align-items: center !important; gap: 6px !important; }
+#sb-counter .sb-dot {
+  width: 8px !important;
+  height: 8px !important;
+  border-radius: 50% !important;
+  background: #5ee08a !important;
+  color: #5ee08a !important;
+  box-shadow: 0 0 8px currentColor !important;
+  flex: 0 0 auto !important;
+  transition: background 0.3s ease, color 0.3s ease !important;
+}
 #sb-counter .sb-label {
   font-size: 11px !important;
   font-weight: 700 !important;

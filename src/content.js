@@ -83,7 +83,7 @@ function ensureCounter() {
   counterEl = document.createElement('div');
   counterEl.id = 'sb-counter';
   counterEl.innerHTML =
-    '<span class="sb-label">오늘 쇼츠 시청</span>' +
+    '<div class="sb-head"><span class="sb-dot"></span><span class="sb-label">오늘 쇼츠 시청</span></div>' +
     '<span class="sb-time"><span class="sb-txt">0:00</span></span>';
   document.body.appendChild(counterEl);
   return counterEl;
@@ -92,7 +92,19 @@ function ensureCounter() {
 function renderCounter() {
   const el = ensureCounter();
   if (!el) return;
-  el.querySelector('.sb-txt').textContent = fmtClock(curUsageMs());
+  const usage = curUsageMs();
+  const limit = curLimitMs();
+  el.querySelector('.sb-txt').textContent = fmtClock(usage);
+  const pct = limit > 0 ? usage / limit : 0;
+  let c = '#5ee08a';
+  if (isOff()) c = '#ffb15c';
+  else if (pct >= 1) c = '#ff5563';
+  else if (pct >= 0.7) c = '#ffb15c';
+  const dot = el.querySelector('.sb-dot');
+  if (dot) {
+    dot.style.background = c;
+    dot.style.color = c;
+  }
 }
 
 // Largest visible <video> = the active Shorts player.
