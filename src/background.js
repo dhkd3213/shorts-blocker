@@ -112,8 +112,8 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           blocked,
         });
       } else if (msg?.type === 'bypass') {
-        const state = await loadState();
-        await saveState(addBonus(state));
+        const [state, settings] = await Promise.all([loadState(), loadSettings()]);
+        await saveState(addBonus(state, settings));
         sendResponse({ ok: true });
       } else if (msg?.type === 'getStatus') {
         const [state, settings] = await Promise.all([loadState(), loadSettings()]);

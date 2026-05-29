@@ -101,14 +101,35 @@ test('isOffActive: past timestamp = not off', () => {
   assert.equal(isOffActive({ offUntil: now.getTime() - 1000 }, now), false);
 });
 
-test('addBonus adds BONUS_MS to bonusMs', () => {
-  assert.equal(addBonus(baseState()).bonusMs, BONUS_MS);
+test('addBonus at the limit grants exactly 10 more real minutes', () => {
+  // usage == base limit (normal block moment)
+  const state = baseState({ todayUsageMs: DEFAULT_DAILY_LIMIT_MS });
+  const next = addBonus(state, baseSettings());
+  assert.equal(effectiveLimitMs(next, baseSettings()), DEFAULT_DAILY_LIMIT_MS + BONUS_MS);
 });
-test('addBonus stacks on repeated calls', () => {
-  assert.equal(addBonus(addBonus(baseState())).bonusMs, BONUS_MS * 2);
+
+test('addBonus grants 10 real minutes even when far over (Off overage trap)', () => {
+  // limit 30min, watched 60min during Off -> pressing should allow 70min total
+  const settings = { dailyLimitMs: 30 * 60 * 1000, offUntil: null };
+  const state = baseState({ todayUsageMs: 60 * 60 * 1000, bonusMs: 0 });
+  const next = addBonus(state, settings);
+  assert.equal(effectiveLimitMs(next, settings), 60 * 60 * 1000 + BONUS_MS); // usage + 10min
 });
-test('addBonus treats missing bonusMs as 0', () => {
-  assert.equal(addBonus({ todayUsageMs: 0, todayDateKey: '2026-05-29' }).bonusMs, BONUS_MS);
+
+test('addBonus stacks: each press adds 10 real minutes from new usage', () => {
+  const settings = { dailyLimitMs: 30 * 60 * 1000, offUntil: null };
+  // first press at 60min -> effective 70min
+  let state = addBonus(baseState({ todayUsageMs: 60 * 60 * 1000 }), settings);
+  // user watched up to 70min, blocked again, presses once more
+  state = addBonus({ ...state, todayUsageMs: 70 * 60 * 1000 }, settings);
+  assert.equal(effectiveLimitMs(state, settings), 80 * 60 * 1000);
+});
+
+test('addBonus never lowers an existing bonus (monotonic)', () => {
+  const settings = baseSettings();
+  const state = baseState({ todayUsageMs: 1000, bonusMs: 5 * 60 * 1000 });
+  // needed would be tiny/negative here; bonus must stay at 5min
+  assert.equal(addBonus(state, settings).bonusMs, 5 * 60 * 1000);
 });
 
 test('applyOff sets offUntil to now + 1 hour', () => {

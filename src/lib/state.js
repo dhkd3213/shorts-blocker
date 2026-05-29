@@ -40,9 +40,15 @@ export function applyTick(state, settings, now, tickMs) {
   return { state: next, blocked };
 }
 
-// "10분 더 보기": extend today's limit by BONUS_MS (counting continues normally)
-export function addBonus(state) {
-  return { ...state, bonusMs: (state.bonusMs ?? 0) + BONUS_MS };
+// "10분 더 보기": grant 10 REAL more minutes from the current usage point.
+// Effective limit becomes (current usage + BONUS_MS), so it always yields a true
+// 10 minutes even after a long Off session left usage far past the base limit.
+// Monotonic: never lowers an existing bonus.
+export function addBonus(state, settings) {
+  const base = settings?.dailyLimitMs ?? DEFAULT_DAILY_LIMIT_MS;
+  const needed = (state.todayUsageMs ?? 0) + BONUS_MS - base;
+  const bonusMs = Math.max(state.bonusMs ?? 0, needed, 0);
+  return { ...state, bonusMs };
 }
 
 export function applyOff(settings, now) {
