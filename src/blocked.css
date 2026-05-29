@@ -6,6 +6,7 @@
   --red: #ff5563;
   --green: #4fd17a;
   --blue: #5c9eff;
+  --coral: #ff6b5c;
   --font: 'Pretendard Variable', Pretendard, 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui, -apple-system, sans-serif;
 }
 
@@ -34,6 +35,10 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.05);
   animation: pop 0.45s cubic-bezier(0.34, 1.4, 0.5, 1) both;
 }
+
+.brand-lockup { display: inline-flex; align-items: center; gap: 9px; margin-bottom: 22px; }
+.brand-lockup img { width: 26px; height: 26px; border-radius: 7px; filter: drop-shadow(0 2px 7px rgba(255, 107, 92, 0.4)); }
+.brand-lockup span { font-size: 15px; font-weight: 800; color: var(--coral); letter-spacing: -0.01em; }
 
 .title { font-size: 27px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 14px; }
 .sub { font-size: 15.5px; color: var(--dim); margin-bottom: 26px; line-height: 1.6; }
