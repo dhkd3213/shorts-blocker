@@ -337,7 +337,7 @@ The first confirm interpolates the live today-usage string. The bypass mechanic 
 
 ## 13. Deployment Artifacts
 
-- **Icons** (`icons/16.png`, `48.png`, `128.png`) — user-provided. ⚠️ Current draft icons resemble the official YouTube Shorts logo; for Web Store submission, either replace with an original design or accept trademark-rejection risk. Personal/dev use is fine.
+- **Icons** (`icons/16.png`, `48.png`, `128.png`) — user-provided. **DECISION: keep current "cracked Shorts logo" icons and accept trademark-rejection risk** (user choice C, 2026-05-29). The cracked-glass twist signals "breaking the Shorts habit." If Web Store rejects the listing for trademark reasons, swap to an original design then. User must save the three PNGs into `icons/` before loading the v0.2 build.
 - **Privacy policy** (`docs/privacy.html`) — short page: no data collected, all storage local, no transmission/ads/tracking, code public. Hosted at `https://dhkd3213.github.io/shorts-blocker/privacy.html` via GitHub Pages. Contact: dhkd3213@gmail.com (or GitHub Issues).
 - **Screenshots** — 1280×800 PNG ×5, captured from the running extension (popup, block page, before/after home, Off menu, wait screen). User-captured after code is complete.
 - **LICENSE** — MIT.
@@ -381,5 +381,5 @@ shorts-blocker/
 ## 16. Open Questions (resolve during implementation)
 
 1. Slider granularity & snap points — continuous 1-min, or snap to 5/10/15/30/60? (lean: 1-min continuous with a readable label)
-2. Exact final icon (trademark decision above)
+2. ~~Exact final icon (trademark decision above)~~ — RESOLVED: keep cracked-Shorts icons, accept risk (choice C)
 3. Whether lowering the limit should instantly block open tabs or wait for next tick (spec says instant via broadcast; confirm during impl)
