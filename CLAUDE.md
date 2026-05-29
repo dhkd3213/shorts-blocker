@@ -4,7 +4,8 @@ YouTube 쇼츠 시청 시간을 하루 N분으로 제한하고, 피드/사이드
 
 - **Repo**: https://github.com/dhkd3213/shorts-blocker (public, MIT)
 - **Tagline**: "오늘 쇼츠, 얼마나 봤어?"
-- **현재 버전**: manifest 0.2.x
+- **스토어 표시명**: `쇼츠블럭 - 쇼츠 차단·시간제한·숨기기` (manifest `name`. 툴바 툴팁은 `action.default_title`="쇼츠블럭")
+- **현재 버전**: manifest 0.2.2
 
 ## 기술 스택 / 규칙
 
@@ -29,10 +30,14 @@ node --check src/<file>.js    # 문법 체크 (import 경고는 무시 — Chrom
 
 - `src/lib/state.js` — **순수 로직(진실의 원천)**. 부수효과 없음, 시계를 인자로 받음. `applyTick`, `addBonus`, `applyOff`, `turnOn`, `setLimit`, `isOffActive`, `effectiveLimitMs`, `resetDay`, `defaultSettings`.
 - `src/background.js` — 서비스워커. `chrome.storage.local` I/O, 직렬화 큐(`serialize`)로 race 방지, `chrome.alarms`(자정 리셋 `daily-reset`, Off 만료 `off-expire`), 메시지 라우팅, 한도 초과 시 쇼츠 탭에 `block` 브로드캐스트, v0.1→v0.2 마이그레이션.
-- `src/content.js` — 모든 youtube.com 페이지에 주입. ① 마스트헤드 위젯 `[카운터][ON/OFF 토글]`을 `ytd-masthead #end`에 삽입(SPA 이동 대비 1.5초마다 재삽입) ② `/shorts/` + visible일 때 1초마다 `tick` ③ `block` 수신 시 차단 페이지로 리다이렉트 ④ Off/hideShorts 상태에 따라 `html.shorts-blocker-nohide` 토글.
-- `src/content.css` — 쇼츠 UI 숨김 셀렉터(`html:not(.shorts-blocker-nohide)`로 게이팅) + 마스트헤드 위젯 스타일.
-- `src/blocked.{html,css,js}` — 차단 페이지. "오늘 쇼츠는 그만", 자정 카운트다운, "10분 더 보기" → 30초 대기카드("잠깐만요 ☕") + 2번 확인 → bypass.
-- `src/popup.{html,css,js}` — 툴바 팝업. 포커스 링(사용량/한도), 한도 프리셋 칩+스테퍼, ON/OFF 스위치, 피드숨김 토글. 1초 폴링.
+- `src/content.js` — 모든 youtube.com 페이지에 주입.
+  - **① 마스트헤드 ON/OFF 토글** (`#sb-toggle`): `ytd-masthead #end`에 삽입, SPA 이동 대비 1초마다 재삽입. ON=초록/OFF=빨강. 클릭 시 `turnOn`/`setOff`.
+  - **② 온비디오 카운터** (`#sb-counter`): `/shorts/`에서만 표시. body에 `position:fixed`로 붙이고, **활성 영상(`<video>` 중 가장 큰 것)의 `getBoundingClientRect`를 0.3초마다 읽어 영상 우측 바깥·세로 중앙에 위치 추적**(댓글/사이드바 열려 영상이 밀려도 따라감). 세로 스택 칩: `● 오늘 쇼츠 시청` / 경과시간(한도 숫자는 표시 안 함). 점 색=한도 임박도(초록/앰버/빨강).
+  - **③** `/shorts/` + visible일 때 1초마다 `tick` 전송. **④** `block` 수신 시 차단 페이지로 리다이렉트. **⑤** Off/hideShorts에 따라 `html.shorts-blocker-nohide` 토글.
+  - 상태는 `chrome.storage.local`에서 캐시(`cachedState`/`cachedSettings`), `storage.onChanged`로 갱신 → 카운터가 탭 간 실시간 동기화.
+- `src/content.css` — 쇼츠 UI 숨김 셀렉터(`html:not(.shorts-blocker-nohide)`로 게이팅) + `#sb-toggle`(테마 적응) + `#sb-counter`(코랄 테두리 세로 칩) 스타일.
+- `src/blocked.{html,css,js}` — 차단 페이지. 브랜드 로크업(로고+워드마크), "오늘 쇼츠는 그만 🛑", 자정 카운트다운, "10분 더 보기" → 30초 대기카드("잠깐만요 ☕" + "오늘 쇼츠, 얼마나 봤어?" + 사용량) + 2번 확인 → bypass.
+- `src/popup.{html,css,js}` — 툴바 팝업. 로고+워드마크+태그라인 헤더, 포커스 링(사용량/유효한도), 한도 프리셋 칩+스테퍼, ON/OFF 스위치, 피드숨김 토글, **피드백 구글폼 링크**(`FEEDBACK_URL` 상수, popup.js 상단). 1초 폴링. 메인 OFF 시 피드숨김 토글 흐려짐.
 
 ## 데이터 모델 (`chrome.storage.local`)
 
@@ -52,11 +57,12 @@ settings = { dailyLimitMs, offUntil, hideShorts }    // 영속
 - 시그니처 컬러 **코랄 `#ff6b5c`** (로고 글로우·워드마크·태그라인·팝업 활성칩 등 브랜드 크롬용)
 - 상태색은 기능 전용: 초록(여유) `#5ee08a` / 앰버(임박·Off) `#ffb15c` / 빨강(초과) `#ff5563`
 - 다크 베이스 `#141414`/`#1f1f1f`. 로고 = 빨간 깨진 쇼츠 아이콘(`icons/`, 흰 배경이라 둥근 타일로 표시)
-- 노출 3접점: ① 마스트헤드 위젯 ② 팝업 ③ 차단 페이지
+- 노출 접점: ① 마스트헤드 토글 ② 온비디오 카운터 ③ 팝업 ④ 차단 페이지
 
 ## 배포 (남은 일)
 
 - 코드/아이콘/zip/GitHub Pages(privacy) 준비 완료. 가이드: `docs/store-listing.md`
+- **피드백 창구**: 팝업의 구글폼 링크(연결 완료) + GitHub Issues + 이메일(dhkd3213@gmail.com). 바이럴/공유 기능은 v1.1로 보류.
 - **남은 것**: 스크린샷 5장(1280×800) 촬영 + 웹스토어 대시보드 제출($5 개발자 등록). privacy URL: `https://dhkd3213.github.io/shorts-blocker/docs/privacy.html`
 - ⚠️ 아이콘이 공식 쇼츠 로고와 유사 → 트레이드마크 리젝 리스크 감수하기로 함(사용자 결정). 리젝 시 오리지널 디자인으로 교체.
 
