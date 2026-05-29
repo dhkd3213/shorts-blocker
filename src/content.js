@@ -86,7 +86,7 @@ function ensureCounter() {
     '<span class="sb-dot"></span>' +
     '<div class="sb-body">' +
     '<span class="sb-label">오늘 쇼츠 시청</span>' +
-    '<span class="sb-time"><span class="sb-txt">0:00</span><span class="sb-sep"> / </span><span class="sb-lim">10:00</span></span>' +
+    '<span class="sb-time"><span class="sb-txt">0:00</span></span>' +
     '</div>';
   document.body.appendChild(counterEl);
   return counterEl;
@@ -99,7 +99,6 @@ function renderCounter() {
   const limit = curLimitMs();
   const off = isOff();
   el.querySelector('.sb-txt').textContent = fmtClock(usage);
-  el.querySelector('.sb-lim').textContent = fmtClock(limit);
   const pct = limit > 0 ? usage / limit : 0;
   let c = '#5ee08a';
   if (off) c = '#ffb15c';
@@ -137,9 +136,13 @@ function positionCounter() {
     return;
   }
   el.style.display = 'flex';
-  el.style.top = Math.max(64, rect.top + 16) + 'px';
-  el.style.right = (window.innerWidth - rect.right + 16) + 'px';
-  el.style.left = 'auto';
+  // Sit just OUTSIDE the video's right edge, top-aligned (above the action buttons).
+  const width = el.offsetWidth || 150;
+  let left = rect.right + 12;
+  if (left + width > window.innerWidth - 8) left = window.innerWidth - width - 8;
+  el.style.left = Math.max(8, left) + 'px';
+  el.style.top = Math.max(64, rect.top + 4) + 'px';
+  el.style.right = 'auto';
 }
 
 // ---- init ----
