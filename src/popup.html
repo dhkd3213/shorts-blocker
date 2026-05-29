@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <div class="popup">
+    <header class="head">
+      <span class="brand">쇼츠블럭</span>
+      <span id="status-badge" class="badge">…</span>
+    </header>
+
+    <section class="usage">
+      <div class="usage-label">오늘 사용 <span id="usage-note"></span></div>
+      <div class="usage-value" id="usage-text">…</div>
+      <div class="bar"><div id="usage-bar" class="bar-fill"></div></div>
+    </section>
+
+    <section class="limit">
+      <div class="limit-label">하루 한도 · <span id="limit-value">10분</span></div>
+      <input id="limit-slider" type="range" min="1" max="120" value="10" />
+    </section>
+
+    <section class="controls">
+      <div id="on-controls">
+        <button id="off-btn" class="btn" type="button">Off ▾</button>
+        <div id="off-menu" class="off-menu hidden">
+          <button data-mode="15min" class="off-opt" type="button">15분</button>
+          <button data-mode="1hour" class="off-opt" type="button">1시간</button>
+          <button data-mode="infinite" class="off-opt" type="button">무제한</button>
+        </div>
+      </div>
+      <button id="on-btn" class="btn primary hidden" type="button">▶ 다시 켜기</button>
+    </section>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
