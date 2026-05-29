@@ -84,10 +84,8 @@ function ensureCounter() {
   counterEl.id = 'sb-counter';
   counterEl.innerHTML =
     '<span class="sb-dot"></span>' +
-    '<div class="sb-body">' +
     '<span class="sb-label">오늘 쇼츠 시청</span>' +
-    '<span class="sb-time"><span class="sb-txt">0:00</span></span>' +
-    '</div>';
+    '<span class="sb-time"><span class="sb-txt">0:00</span></span>';
   document.body.appendChild(counterEl);
   return counterEl;
 }

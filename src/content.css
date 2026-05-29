@@ -63,10 +63,11 @@ html:not(.shorts-blocker-nohide) ytd-mini-guide-entry-renderer[aria-label="ì‡¼ì¸
   position: fixed !important;
   z-index: 2147483000 !important;
   display: none;
+  flex-direction: column !important;
   align-items: center !important;
-  gap: 11px !important;
-  padding: 11px 16px !important;
-  border-radius: 14px !important;
+  gap: 6px !important;
+  padding: 14px 16px !important;
+  border-radius: 16px !important;
   background: rgba(18, 18, 18, 0.86) !important;
   -webkit-backdrop-filter: blur(8px) !important;
   backdrop-filter: blur(8px) !important;
@@ -74,11 +75,12 @@ html:not(.shorts-blocker-nohide) ytd-mini-guide-entry-renderer[aria-label="ì‡¼ì¸
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.55), 0 0 16px rgba(255, 107, 92, 0.25) !important;
   pointer-events: none !important;
   user-select: none !important;
+  text-align: center !important;
   font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui, sans-serif !important;
 }
 #sb-counter .sb-dot {
-  width: 11px !important;
-  height: 11px !important;
+  width: 10px !important;
+  height: 10px !important;
   border-radius: 50% !important;
   background: #5ee08a !important;
   color: #5ee08a !important;
@@ -86,19 +88,19 @@ html:not(.shorts-blocker-nohide) ytd-mini-guide-entry-renderer[aria-label="ì‡¼ì¸
   flex: 0 0 auto !important;
   transition: background 0.3s ease, color 0.3s ease !important;
 }
-#sb-counter .sb-body { display: flex !important; flex-direction: column !important; gap: 2px !important; }
 #sb-counter .sb-label {
-  font-size: 11.5px !important;
+  font-size: 11px !important;
   font-weight: 700 !important;
   color: #ff8a7c !important;
-  letter-spacing: 0.03em !important;
+  letter-spacing: 0.04em !important;
+  white-space: nowrap !important;
 }
 #sb-counter .sb-time {
-  font-size: 24px !important;
+  font-size: 26px !important;
   font-weight: 800 !important;
   color: #ffffff !important;
   font-variant-numeric: tabular-nums !important;
   letter-spacing: 0.01em !important;
-  line-height: 1.05 !important;
+  line-height: 1 !important;
   text-shadow: 0 1px 5px rgba(0, 0, 0, 0.6) !important;
 }
