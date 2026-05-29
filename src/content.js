@@ -1,5 +1,6 @@
 const TICK_INTERVAL_MS = 1000;
-const MAINT_INTERVAL_MS = 1500;
+const MAINT_INTERVAL_MS = 1000;
+const POSITION_INTERVAL_MS = 300;
 const DEFAULT_LIMIT_MS = 10 * 60 * 1000;
 
 function isOnShorts() {
@@ -45,14 +46,11 @@ function applyHideClass() {
   document.documentElement.classList.toggle('shorts-blocker-nohide', !shouldHide);
 }
 
-// ---- masthead widget: [usage counter] [ON/OFF toggle] ----
-let barEl = null;
+// ---- masthead ON/OFF toggle ----
 let toggleEl = null;
-let countEl = null;
 
 function onToggleClick() {
   chrome.runtime.sendMessage({ type: isOff() ? 'turnOn' : 'setOff' }).catch(() => {});
-  // storage.onChanged refreshes cache + re-renders
 }
 
 function renderToggle() {
@@ -63,46 +61,85 @@ function renderToggle() {
   toggleEl.title = off ? '꺼짐 (1시간 후 자동 켜짐) — 클릭해서 켜기' : '켜짐 — 클릭해서 끄기';
 }
 
-function renderCount() {
-  if (!countEl) return;
+function ensureMastheadToggle() {
+  if (toggleEl && document.contains(toggleEl)) return;
+  const end = document.querySelector('ytd-masthead #end') || document.querySelector('#masthead #end');
+  if (!end) return;
+  toggleEl = document.createElement('button');
+  toggleEl.id = 'sb-toggle';
+  toggleEl.type = 'button';
+  toggleEl.innerHTML = '<span class="sb-t-dot"></span><span class="sb-t-label">쇼츠블럭 · ON</span>';
+  toggleEl.addEventListener('click', onToggleClick);
+  end.insertBefore(toggleEl, end.firstChild);
+  renderToggle();
+}
+
+// ---- on-video usage counter (tracks the active Shorts player's top-right) ----
+let counterEl = null;
+
+function ensureCounter() {
+  if (counterEl && document.body && document.body.contains(counterEl)) return counterEl;
+  if (!document.body) return null;
+  counterEl = document.createElement('div');
+  counterEl.id = 'sb-counter';
+  counterEl.innerHTML =
+    '<span class="sb-dot"></span>' +
+    '<div class="sb-body">' +
+    '<span class="sb-label">오늘 쇼츠 시청</span>' +
+    '<span class="sb-time"><span class="sb-txt">0:00</span><span class="sb-sep"> / </span><span class="sb-lim">10:00</span></span>' +
+    '</div>';
+  document.body.appendChild(counterEl);
+  return counterEl;
+}
+
+function renderCounter() {
+  const el = ensureCounter();
+  if (!el) return;
   const usage = curUsageMs();
   const limit = curLimitMs();
   const off = isOff();
-  countEl.querySelector('.sb-c-txt').textContent = fmtClock(usage);
-  countEl.querySelector('.sb-c-lim').textContent = fmtClock(limit);
+  el.querySelector('.sb-txt').textContent = fmtClock(usage);
+  el.querySelector('.sb-lim').textContent = fmtClock(limit);
   const pct = limit > 0 ? usage / limit : 0;
   let c = '#5ee08a';
   if (off) c = '#ffb15c';
   else if (pct >= 1) c = '#ff5563';
   else if (pct >= 0.7) c = '#ffb15c';
-  const dot = countEl.querySelector('.sb-c-dot');
+  const dot = el.querySelector('.sb-dot');
   dot.style.background = c;
   dot.style.color = c;
 }
 
-function ensureMastheadWidget() {
-  if (barEl && document.contains(barEl)) return;
-  const end = document.querySelector('ytd-masthead #end') || document.querySelector('#masthead #end');
-  if (!end) return;
-  barEl = document.createElement('div');
-  barEl.id = 'sb-bar';
-  barEl.innerHTML =
-    '<div id="sb-count" title="오늘 쇼츠 시청 시간">' +
-    '<span class="sb-c-dot"></span>' +
-    '<span class="sb-c-txt">0:00</span>' +
-    '<span class="sb-c-sep"> / </span>' +
-    '<span class="sb-c-lim">10:00</span>' +
-    '</div>' +
-    '<button id="sb-toggle" type="button">' +
-    '<span class="sb-t-dot"></span>' +
-    '<span class="sb-t-label">쇼츠블럭 · ON</span>' +
-    '</button>';
-  toggleEl = barEl.querySelector('#sb-toggle');
-  countEl = barEl.querySelector('#sb-count');
-  toggleEl.addEventListener('click', onToggleClick);
-  end.insertBefore(barEl, end.firstChild);
-  renderToggle();
-  renderCount();
+// Largest visible <video> = the active Shorts player.
+function activeVideoRect() {
+  let best = null;
+  let bestArea = 0;
+  for (const v of document.querySelectorAll('video')) {
+    const r = v.getBoundingClientRect();
+    if (r.width < 120 || r.height < 120) continue;
+    const visW = Math.max(0, Math.min(r.right, innerWidth) - Math.max(r.left, 0));
+    const visH = Math.max(0, Math.min(r.bottom, innerHeight) - Math.max(r.top, 0));
+    const area = visW * visH;
+    if (area > bestArea) {
+      bestArea = area;
+      best = r;
+    }
+  }
+  return best;
+}
+
+function positionCounter() {
+  const el = ensureCounter();
+  if (!el) return;
+  const rect = isOnShorts() ? activeVideoRect() : null;
+  if (!rect) {
+    el.style.display = 'none';
+    return;
+  }
+  el.style.display = 'flex';
+  el.style.top = Math.max(64, rect.top + 16) + 'px';
+  el.style.right = (window.innerWidth - rect.right + 16) + 'px';
+  el.style.left = 'auto';
 }
 
 // ---- init ----
@@ -111,7 +148,9 @@ function ensureMastheadWidget() {
   cachedState = obj.state ?? null;
   cachedSettings = obj.settings ?? null;
   applyHideClass();
-  ensureMastheadWidget();
+  ensureMastheadToggle();
+  renderCounter();
+  positionCounter();
 })();
 
 chrome.storage.onChanged.addListener((changes, area) => {
@@ -120,20 +159,24 @@ chrome.storage.onChanged.addListener((changes, area) => {
     cachedSettings = changes.settings.newValue ?? null;
     applyHideClass();
     renderToggle();
-    renderCount();
+    renderCounter();
   }
   if (changes.state) {
     cachedState = changes.state.newValue ?? null;
-    renderCount();
+    renderCounter();
   }
 });
 
-// keep the widget present + correct across SPA navigations
+// keep masthead toggle present + values fresh across SPA navigations
 setInterval(() => {
-  ensureMastheadWidget();
+  ensureMastheadToggle();
   renderToggle();
-  renderCount();
+  renderCounter();
 }, MAINT_INTERVAL_MS);
+
+// track the moving Shorts video (comments/sidebar open → video shifts)
+setInterval(positionCounter, POSITION_INTERVAL_MS);
+window.addEventListener('resize', positionCounter);
 
 // count Shorts viewing time (only on /shorts/ while the tab is visible)
 setInterval(() => {
