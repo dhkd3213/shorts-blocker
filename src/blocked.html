@@ -7,19 +7,29 @@
   <link rel="stylesheet" href="blocked.css" />
 </head>
 <body>
-  <main class="card">
+  <main id="block-card" class="card">
     <h1 class="title">쇼츠는 그만 🛑</h1>
-    <p class="sub">오늘 10분 한도를 다 썼어요.</p>
-    <p class="countdown">
-      자정까지 <span id="time-left">계산 중…</span> 남음
-    </p>
+    <p class="sub">오늘 한도를 다 썼어요.</p>
+    <p class="countdown">자정까지 <span id="time-left">계산 중…</span> 남음</p>
     <div class="actions">
       <a href="https://www.youtube.com" class="btn primary">YouTube 홈으로</a>
-      <button id="bypass-btn" class="btn secondary" type="button">
-        10분만 더 보기
-      </button>
+      <button id="bypass-btn" class="btn secondary" type="button">10분만 더 보기</button>
     </div>
   </main>
+
+  <main id="wait-card" class="card hidden">
+    <h1 class="title">잠깐만요 ☕</h1>
+    <p class="sub">보통 30초만 지나면<br>'꼭 봐야지' 느낌이 사라져요</p>
+    <div class="divider"></div>
+    <p class="usage-label">오늘 시청 시간</p>
+    <p class="usage-value" id="wait-usage">…</p>
+    <div class="bar"><div id="wait-usage-bar" class="bar-fill"></div></div>
+    <div class="divider"></div>
+    <p class="wait-count"><span id="wait-seconds">30</span>초</p>
+    <div class="bar"><div id="wait-progress" class="bar-fill countdown-fill"></div></div>
+    <button id="wait-continue" class="btn secondary hidden" type="button">계속하기</button>
+  </main>
+
   <script src="blocked.js"></script>
 </body>
 </html>

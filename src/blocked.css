@@ -21,62 +21,30 @@ body {
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
 }
 
-.title {
-  font-size: 28px;
-  margin-bottom: 16px;
-}
+.title { font-size: 28px; margin-bottom: 16px; }
+.sub { font-size: 16px; color: #c0c0c0; margin-bottom: 24px; line-height: 1.5; }
+.countdown { font-size: 14px; color: #909090; margin-bottom: 32px; }
+#time-left { color: #f0f0f0; font-weight: 600; }
 
-.sub {
-  font-size: 16px;
-  color: #c0c0c0;
-  margin-bottom: 24px;
-}
-
-.countdown {
-  font-size: 14px;
-  color: #909090;
-  margin-bottom: 32px;
-}
-
-#time-left {
-  color: #f0f0f0;
-  font-weight: 600;
-}
-
-.actions {
-  display: flex;
-  gap: 12px;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
+.actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
 .btn {
-  padding: 12px 24px;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  text-decoration: none;
-  font-family: inherit;
-  transition: opacity 0.15s ease;
+  padding: 12px 24px; border: none; border-radius: 8px;
+  font-size: 14px; font-weight: 500; cursor: pointer;
+  text-decoration: none; font-family: inherit; transition: opacity 0.15s ease;
 }
-
 .btn:hover { opacity: 0.85; }
+.btn.primary { background: #ff4d4d; color: white; }
+.btn.secondary { background: #3a3a3a; color: #d0d0d0; }
+.btn:disabled { background: #2a2a2a; color: #666; cursor: not-allowed; opacity: 1; }
 
-.btn.primary {
-  background: #ff4d4d;
-  color: white;
-}
+/* Wait card */
+.divider { height: 1px; background: #3a3a3a; margin: 20px 0; }
+.usage-label { font-size: 13px; color: #909090; margin-bottom: 6px; }
+.usage-value { font-size: 24px; font-weight: 700; margin-bottom: 12px; }
+.wait-count { font-size: 32px; font-weight: 700; margin-bottom: 12px; }
+.bar { height: 8px; background: #333; border-radius: 999px; overflow: hidden; }
+.bar-fill { height: 100%; width: 0%; background: #ff4d4d; transition: width 0.3s ease; }
+.countdown-fill { background: #5c9eff; transition: width 1s linear; }
+#wait-continue { margin-top: 24px; }
 
-.btn.secondary {
-  background: #3a3a3a;
-  color: #d0d0d0;
-}
-
-.btn:disabled {
-  background: #2a2a2a;
-  color: #666;
-  cursor: not-allowed;
-  opacity: 1;
-}
+.hidden { display: none !important; }
