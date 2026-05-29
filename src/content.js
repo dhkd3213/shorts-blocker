@@ -72,7 +72,7 @@ function showCounter(show) {
 (async () => {
   const obj = await chrome.storage.local.get(['state', 'settings']);
   const usage = obj.state?.todayUsageMs ?? 0;
-  const limit = obj.settings?.dailyLimitMs ?? DEFAULT_LIMIT_MS;
+  const limit = (obj.settings?.dailyLimitMs ?? DEFAULT_LIMIT_MS) + (obj.state?.bonusMs ?? 0);
   const off = obj.settings && isOffActiveLocal(obj.settings, Date.now());
   if (isOnShorts()) {
     renderCounter(usage, limit, !!off);
@@ -89,7 +89,8 @@ setInterval(async () => {
     const resp = await chrome.runtime.sendMessage({ type: 'tick' });
     if (resp?.ok) {
       const off = resp.offUntil != null && Date.now() < resp.offUntil;
-      renderCounter(resp.todayUsageMs, resp.dailyLimitMs ?? DEFAULT_LIMIT_MS, off);
+      const limit = (resp.dailyLimitMs ?? DEFAULT_LIMIT_MS) + (resp.bonusMs ?? 0);
+      renderCounter(resp.todayUsageMs, limit, off);
     }
   } catch {
     // service worker restarting — drop this tick

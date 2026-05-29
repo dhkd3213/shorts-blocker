@@ -41,7 +41,8 @@ function render() {
 
   $('power').checked = !off;
 
-  const pct = status.dailyLimitMs > 0 ? status.todayUsageMs / status.dailyLimitMs : 0;
+  const effLimit = status.dailyLimitMs + (status.bonusMs ?? 0);
+  const pct = effLimit > 0 ? status.todayUsageMs / effLimit : 0;
   const prog = $('ring-prog');
   prog.style.strokeDasharray = C;
   prog.style.strokeDashoffset = C * (1 - Math.min(pct, 1));
@@ -51,7 +52,7 @@ function render() {
   prog.style.stroke = off ? '#6a6a6a' : color;
 
   $('usage').textContent = fmtClock(status.todayUsageMs);
-  $('limit-of').textContent = fmtClock(status.dailyLimitMs);
+  $('limit-of').textContent = fmtClock(effLimit);
   $('cap').textContent = off ? 'Off · 카운트만' : '오늘 시청';
   $('ring-wrap').classList.toggle('off', off);
 

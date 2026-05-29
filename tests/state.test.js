@@ -3,19 +3,21 @@ import assert from 'node:assert/strict';
 import {
   todayKey,
   applyTick,
-  startBypass,
+  addBonus,
   resetDay,
   isOffActive,
+  effectiveLimitMs,
   applyOff,
   turnOn,
   setLimit,
   defaultSettings,
   DEFAULT_DAILY_LIMIT_MS,
-  BYPASS_DURATION_MS,
+  BONUS_MS,
   OFF_DURATION_MS,
 } from '../src/lib/state.js';
 
 const baseSettings = () => ({ dailyLimitMs: DEFAULT_DAILY_LIMIT_MS, offUntil: null });
+const baseState = (over = {}) => ({ todayUsageMs: 0, bonusMs: 0, todayDateKey: '2026-05-29', ...over });
 
 test('todayKey formats local date as YYYY-MM-DD', () => {
   assert.equal(todayKey(new Date(2026, 4, 29)), '2026-05-29');
@@ -26,36 +28,44 @@ test('todayKey pads single-digit month and day', () => {
 });
 
 test('applyTick increments todayUsageMs by tickMs', () => {
-  const state = { todayUsageMs: 0, todayDateKey: '2026-05-29', bypassUntil: null };
-  const { state: next, blocked } = applyTick(state, baseSettings(), new Date(2026, 4, 29, 10), 1000);
+  const { state: next, blocked } = applyTick(baseState(), baseSettings(), new Date(2026, 4, 29, 10), 1000);
   assert.equal(next.todayUsageMs, 1000);
   assert.equal(blocked, false);
 });
 
 test('applyTick reports blocked once default limit hit', () => {
-  const state = { todayUsageMs: DEFAULT_DAILY_LIMIT_MS - 1000, todayDateKey: '2026-05-29', bypassUntil: null };
-  const { state: next, blocked } = applyTick(state, baseSettings(), new Date(2026, 4, 29, 10), 1000);
+  const { state: next, blocked } = applyTick(baseState({ todayUsageMs: DEFAULT_DAILY_LIMIT_MS - 1000 }), baseSettings(), new Date(2026, 4, 29, 10), 1000);
   assert.equal(next.todayUsageMs, DEFAULT_DAILY_LIMIT_MS);
   assert.equal(blocked, true);
 });
 
 test('applyTick respects custom dailyLimitMs from settings', () => {
-  const state = { todayUsageMs: 4000, todayDateKey: '2026-05-29', bypassUntil: null };
-  const { blocked } = applyTick(state, { dailyLimitMs: 5000, offUntil: null }, new Date(2026, 4, 29, 10), 1000);
+  const { blocked } = applyTick(baseState({ todayUsageMs: 4000 }), { dailyLimitMs: 5000, offUntil: null }, new Date(2026, 4, 29, 10), 1000);
   assert.equal(blocked, true);
 });
 
-test('applyTick does not count or block during block-page bypass', () => {
-  const now = new Date(2026, 4, 29, 10);
-  const state = { todayUsageMs: DEFAULT_DAILY_LIMIT_MS, todayDateKey: '2026-05-29', bypassUntil: now.getTime() + 60000 };
-  const { state: next, blocked } = applyTick(state, baseSettings(), now, 1000);
-  assert.equal(next.todayUsageMs, DEFAULT_DAILY_LIMIT_MS);
+test('effectiveLimitMs adds bonus to base daily limit', () => {
+  assert.equal(effectiveLimitMs({ bonusMs: BONUS_MS }, baseSettings()), DEFAULT_DAILY_LIMIT_MS + BONUS_MS);
+});
+
+test('applyTick does NOT block while within extended (bonus) limit', () => {
+  // usage 11min, base limit 10min, but bonus 10min -> effective 20min
+  const state = baseState({ todayUsageMs: 11 * 60 * 1000, bonusMs: BONUS_MS });
+  const { blocked } = applyTick(state, baseSettings(), new Date(2026, 4, 29, 10), 1000);
   assert.equal(blocked, false);
+});
+
+test('applyTick blocks when usage reaches extended limit', () => {
+  // usage one tick below 20min effective limit -> tick pushes to 20min -> blocked
+  const state = baseState({ todayUsageMs: 20 * 60 * 1000 - 1000, bonusMs: BONUS_MS });
+  const { state: next, blocked } = applyTick(state, baseSettings(), new Date(2026, 4, 29, 10), 1000);
+  assert.equal(next.todayUsageMs, 20 * 60 * 1000);
+  assert.equal(blocked, true);
 });
 
 test('applyTick counts but does NOT block while Off is active', () => {
   const now = new Date(2026, 4, 29, 10);
-  const state = { todayUsageMs: DEFAULT_DAILY_LIMIT_MS, todayDateKey: '2026-05-29', bypassUntil: null };
+  const state = baseState({ todayUsageMs: DEFAULT_DAILY_LIMIT_MS });
   const settings = { dailyLimitMs: DEFAULT_DAILY_LIMIT_MS, offUntil: now.getTime() + 60000 };
   const { state: next, blocked } = applyTick(state, settings, now, 1000);
   assert.equal(next.todayUsageMs, DEFAULT_DAILY_LIMIT_MS + 1000);
@@ -64,17 +74,18 @@ test('applyTick counts but does NOT block while Off is active', () => {
 
 test('applyTick blocks immediately after Off expires when over limit', () => {
   const now = new Date(2026, 4, 29, 10);
-  const state = { todayUsageMs: DEFAULT_DAILY_LIMIT_MS + 30000, todayDateKey: '2026-05-29', bypassUntil: null };
+  const state = baseState({ todayUsageMs: DEFAULT_DAILY_LIMIT_MS + 30000 });
   const settings = { dailyLimitMs: DEFAULT_DAILY_LIMIT_MS, offUntil: now.getTime() - 1000 };
   const { blocked } = applyTick(state, settings, now, 1000);
   assert.equal(blocked, true);
 });
 
-test('applyTick safety-net resets when stored date is stale', () => {
-  const state = { todayUsageMs: DEFAULT_DAILY_LIMIT_MS, todayDateKey: '2026-05-28', bypassUntil: null };
+test('applyTick safety-net resets usage AND bonus when stored date is stale', () => {
+  const state = baseState({ todayUsageMs: DEFAULT_DAILY_LIMIT_MS, bonusMs: BONUS_MS, todayDateKey: '2026-05-28' });
   const { state: next, blocked } = applyTick(state, baseSettings(), new Date(2026, 4, 29, 0, 0, 5), 1000);
   assert.equal(next.todayDateKey, '2026-05-29');
   assert.equal(next.todayUsageMs, 1000);
+  assert.equal(next.bonusMs, 0);
   assert.equal(blocked, false);
 });
 
@@ -88,6 +99,16 @@ test('isOffActive: future timestamp = off', () => {
 test('isOffActive: past timestamp = not off', () => {
   const now = new Date(2026, 4, 29, 10);
   assert.equal(isOffActive({ offUntil: now.getTime() - 1000 }, now), false);
+});
+
+test('addBonus adds BONUS_MS to bonusMs', () => {
+  assert.equal(addBonus(baseState()).bonusMs, BONUS_MS);
+});
+test('addBonus stacks on repeated calls', () => {
+  assert.equal(addBonus(addBonus(baseState())).bonusMs, BONUS_MS * 2);
+});
+test('addBonus treats missing bonusMs as 0', () => {
+  assert.equal(addBonus({ todayUsageMs: 0, todayDateKey: '2026-05-29' }).bonusMs, BONUS_MS);
 });
 
 test('applyOff sets offUntil to now + 1 hour', () => {
@@ -107,14 +128,9 @@ test('defaultSettings returns 10min limit and null off', () => {
   assert.equal(s.offUntil, null);
 });
 
-test('startBypass sets bypassUntil = now + BYPASS_DURATION_MS', () => {
-  const now = new Date(2026, 4, 29, 10);
-  const next = startBypass({ todayUsageMs: 600000, todayDateKey: '2026-05-29', bypassUntil: null }, now);
-  assert.equal(next.bypassUntil, now.getTime() + BYPASS_DURATION_MS);
-});
-test('resetDay zeros usage, clears bypass, updates date', () => {
-  const next = resetDay({ todayUsageMs: 600000, todayDateKey: '2026-05-29', bypassUntil: 123 }, new Date(2026, 4, 30));
+test('resetDay zeros usage AND bonus, updates date', () => {
+  const next = resetDay(baseState({ todayUsageMs: 600000, bonusMs: BONUS_MS }), new Date(2026, 4, 30));
   assert.equal(next.todayUsageMs, 0);
+  assert.equal(next.bonusMs, 0);
   assert.equal(next.todayDateKey, '2026-05-30');
-  assert.equal(next.bypassUntil, null);
 });

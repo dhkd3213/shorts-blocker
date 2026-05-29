@@ -36,7 +36,8 @@ const continueBtn = document.getElementById('wait-continue');
 function startWait() {
   if (statusData?.ok) {
     document.getElementById('wait-usage').textContent = fmtDuration(statusData.todayUsageMs);
-    const pct = statusData.dailyLimitMs > 0 ? (statusData.todayUsageMs / statusData.dailyLimitMs) * 100 : 0;
+    const effLimit = (statusData.dailyLimitMs || 0) + (statusData.bonusMs || 0);
+    const pct = effLimit > 0 ? (statusData.todayUsageMs / effLimit) * 100 : 0;
     document.getElementById('wait-usage-bar').style.width = Math.min(100, pct) + '%';
   }
   blockCard.classList.add('hidden');

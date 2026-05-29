@@ -18,8 +18,8 @@ html:not(.shorts-blocker-off) ytd-mini-guide-entry-renderer[aria-label="쇼츠"]
 /* ---- on-page usage counter (injected by content.js) ---- */
 #sb-counter {
   position: fixed !important;
-  left: 16px !important;
-  bottom: 16px !important;
+  right: 16px !important;
+  top: 72px !important;
   z-index: 2147483000 !important;
   display: none;
   align-items: center !important;

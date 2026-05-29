@@ -1,6 +1,6 @@
 import {
   applyTick,
-  startBypass,
+  addBonus,
   resetDay,
   todayKey,
   applyOff,
@@ -24,7 +24,7 @@ function serialize(work) {
 }
 
 function defaultState() {
-  return { todayUsageMs: 0, todayDateKey: todayKey(new Date()), bypassUntil: null };
+  return { todayUsageMs: 0, bonusMs: 0, todayDateKey: todayKey(new Date()) };
 }
 
 async function loadState() {
@@ -107,22 +107,24 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           ok: true,
           todayUsageMs: next.todayUsageMs,
           dailyLimitMs: settings.dailyLimitMs,
+          bonusMs: next.bonusMs ?? 0,
           offUntil: settings.offUntil,
           blocked,
         });
       } else if (msg?.type === 'bypass') {
         const state = await loadState();
-        await saveState(startBypass(state, new Date()));
+        await saveState(addBonus(state));
         sendResponse({ ok: true });
       } else if (msg?.type === 'getStatus') {
         const [state, settings] = await Promise.all([loadState(), loadSettings()]);
-        sendResponse({ ok: true, ...state, ...settings, now: Date.now() });
+        sendResponse({ ok: true, ...state, ...settings, bonusMs: state.bonusMs ?? 0, now: Date.now() });
       } else if (msg?.type === 'setLimit') {
         const settings = await loadSettings();
         const updated = setLimit(settings, msg.limitMs);
         await saveSettings(updated);
         const state = await loadState();
-        if (!isOffActive(updated, new Date()) && state.todayUsageMs >= updated.dailyLimitMs) {
+        const effLimit = updated.dailyLimitMs + (state.bonusMs ?? 0);
+        if (!isOffActive(updated, new Date()) && state.todayUsageMs >= effLimit) {
           await broadcastBlock();
         }
         sendResponse({ ok: true });
