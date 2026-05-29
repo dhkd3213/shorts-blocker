@@ -103,7 +103,13 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         const { state: next, blocked } = applyTick(state, settings, new Date(), 1000);
         await saveState(next);
         if (blocked) await broadcastBlock();
-        sendResponse({ ok: true, todayUsageMs: next.todayUsageMs, blocked });
+        sendResponse({
+          ok: true,
+          todayUsageMs: next.todayUsageMs,
+          dailyLimitMs: settings.dailyLimitMs,
+          offUntil: settings.offUntil,
+          blocked,
+        });
       } else if (msg?.type === 'bypass') {
         const state = await loadState();
         await saveState(startBypass(state, new Date()));
@@ -122,7 +128,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         sendResponse({ ok: true });
       } else if (msg?.type === 'setOff') {
         const settings = await loadSettings();
-        const updated = applyOff(settings, msg.mode, new Date());
+        const updated = applyOff(settings, new Date());
         await saveSettings(updated);
         scheduleOffExpire(updated.offUntil);
         sendResponse({ ok: true });

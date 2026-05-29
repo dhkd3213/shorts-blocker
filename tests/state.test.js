@@ -12,7 +12,7 @@ import {
   defaultSettings,
   DEFAULT_DAILY_LIMIT_MS,
   BYPASS_DURATION_MS,
-  OFF_DURATIONS,
+  OFF_DURATION_MS,
 } from '../src/lib/state.js';
 
 const baseSettings = () => ({ dailyLimitMs: DEFAULT_DAILY_LIMIT_MS, offUntil: null });
@@ -70,15 +70,6 @@ test('applyTick blocks immediately after Off expires when over limit', () => {
   assert.equal(blocked, true);
 });
 
-test('applyTick infinite Off counts but never blocks', () => {
-  const now = new Date(2026, 4, 29, 10);
-  const state = { todayUsageMs: DEFAULT_DAILY_LIMIT_MS * 5, todayDateKey: '2026-05-29', bypassUntil: null };
-  const settings = { dailyLimitMs: DEFAULT_DAILY_LIMIT_MS, offUntil: 'infinite' };
-  const { state: next, blocked } = applyTick(state, settings, now, 1000);
-  assert.equal(next.todayUsageMs, DEFAULT_DAILY_LIMIT_MS * 5 + 1000);
-  assert.equal(blocked, false);
-});
-
 test('applyTick safety-net resets when stored date is stale', () => {
   const state = { todayUsageMs: DEFAULT_DAILY_LIMIT_MS, todayDateKey: '2026-05-28', bypassUntil: null };
   const { state: next, blocked } = applyTick(state, baseSettings(), new Date(2026, 4, 29, 0, 0, 5), 1000);
@@ -98,24 +89,14 @@ test('isOffActive: past timestamp = not off', () => {
   const now = new Date(2026, 4, 29, 10);
   assert.equal(isOffActive({ offUntil: now.getTime() - 1000 }, now), false);
 });
-test('isOffActive: "infinite" = off', () => {
-  assert.equal(isOffActive({ offUntil: 'infinite' }, new Date(2026, 4, 29, 10)), true);
-});
 
-test('applyOff 15min sets offUntil to now + 15min', () => {
+test('applyOff sets offUntil to now + 1 hour', () => {
   const now = new Date(2026, 4, 29, 10);
-  assert.equal(applyOff(baseSettings(), '15min', now).offUntil, now.getTime() + OFF_DURATIONS['15min']);
-});
-test('applyOff 1hour sets offUntil to now + 1hour', () => {
-  const now = new Date(2026, 4, 29, 10);
-  assert.equal(applyOff(baseSettings(), '1hour', now).offUntil, now.getTime() + OFF_DURATIONS['1hour']);
-});
-test('applyOff infinite sets offUntil to "infinite"', () => {
-  assert.equal(applyOff(baseSettings(), 'infinite', new Date(2026, 4, 29, 10)).offUntil, 'infinite');
+  assert.equal(applyOff(baseSettings(), now).offUntil, now.getTime() + OFF_DURATION_MS);
 });
 
 test('turnOn clears offUntil to null', () => {
-  assert.equal(turnOn({ dailyLimitMs: 600000, offUntil: 'infinite' }).offUntil, null);
+  assert.equal(turnOn({ dailyLimitMs: 600000, offUntil: 1234567890 }).offUntil, null);
 });
 test('setLimit updates dailyLimitMs', () => {
   assert.equal(setLimit(baseSettings(), 300000).dailyLimitMs, 300000);
