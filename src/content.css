@@ -72,21 +72,11 @@ html:not(.shorts-blocker-nohide) ytd-mini-guide-entry-renderer[aria-label="ì‡¼ì¸
   -webkit-backdrop-filter: blur(8px) !important;
   backdrop-filter: blur(8px) !important;
   border: 1.5px solid rgba(255, 107, 92, 0.65) !important;
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.55), 0 0 16px rgba(255, 107, 92, 0.25) !important;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.55), 0 0 16px rgba(255, 107, 92, 0.20) !important;
   pointer-events: none !important;
   user-select: none !important;
   text-align: center !important;
   font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui, sans-serif !important;
-}
-#sb-counter .sb-dot {
-  width: 10px !important;
-  height: 10px !important;
-  border-radius: 50% !important;
-  background: #5ee08a !important;
-  color: #5ee08a !important;
-  box-shadow: 0 0 12px currentColor !important;
-  flex: 0 0 auto !important;
-  transition: background 0.3s ease, color 0.3s ease !important;
 }
 #sb-counter .sb-label {
   font-size: 11px !important;
