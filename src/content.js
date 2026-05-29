@@ -40,12 +40,8 @@ function onToggleClick() {
 function renderToggle() {
   if (!toggleEl) return;
   const off = isOff();
-  const dot = toggleEl.querySelector('.sb-t-dot');
-  const label = toggleEl.querySelector('.sb-t-label');
-  const color = off ? '#ffb15c' : '#5ee08a';
-  dot.style.background = color;
-  dot.style.color = color;
-  label.textContent = off ? '쇼츠블럭 · OFF' : '쇼츠블럭';
+  toggleEl.classList.toggle('sb-off', !!off);
+  toggleEl.querySelector('.sb-t-label').textContent = off ? '쇼츠블럭 · OFF' : '쇼츠블럭 · ON';
   toggleEl.title = off ? '꺼짐 (1시간 후 자동 켜짐) — 클릭해서 켜기' : '켜짐 — 클릭해서 끄기';
 }
 

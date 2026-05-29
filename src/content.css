@@ -26,27 +26,37 @@ html:not(.shorts-blocker-nohide) ytd-mini-guide-entry-renderer[aria-label="쇼�
   padding: 0 14px !important;
   margin: 0 8px !important;
   border-radius: 999px !important;
-  border: 1px solid var(--yt-spec-10-percent-layer, rgba(128, 128, 128, 0.22)) !important;
-  background: var(--yt-spec-badge-chip-background, rgba(128, 128, 128, 0.13)) !important;
-  color: var(--yt-spec-text-primary, #f1f1f1) !important;
-  font: 600 13px 'Roboto', 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif !important;
+  font: 700 13px 'Roboto', 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif !important;
   cursor: pointer !important;
   white-space: nowrap !important;
   line-height: 1 !important;
   -webkit-font-smoothing: antialiased !important;
-  transition: background 0.15s ease !important;
+  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease !important;
+  /* ON (default) — calm green */
+  border: 1px solid rgba(94, 224, 138, 0.45) !important;
+  background: rgba(94, 224, 138, 0.14) !important;
+  color: #4cc878 !important;
 }
-#sb-toggle:hover { background: var(--yt-spec-10-percent-layer, rgba(128, 128, 128, 0.25)) !important; }
+#sb-toggle:hover { background: rgba(94, 224, 138, 0.24) !important; }
 #sb-toggle .sb-t-dot {
   width: 9px !important;
   height: 9px !important;
   border-radius: 50% !important;
   background: #5ee08a !important;
   color: #5ee08a !important;
-  box-shadow: 0 0 7px currentColor !important;
+  box-shadow: 0 0 8px currentColor !important;
   flex: 0 0 auto !important;
   transition: background 0.25s ease, color 0.25s ease !important;
 }
+
+/* OFF — loud red ("보호 꺼짐") */
+#sb-toggle.sb-off {
+  border-color: rgba(255, 85, 99, 0.55) !important;
+  background: rgba(255, 85, 99, 0.17) !important;
+  color: #ff6b78 !important;
+}
+#sb-toggle.sb-off:hover { background: rgba(255, 85, 99, 0.28) !important; }
+#sb-toggle.sb-off .sb-t-dot { background: #ff5563 !important; color: #ff5563 !important; }
 
 /* ---- on-page usage counter (injected by content.js) ---- */
 #sb-counter {
