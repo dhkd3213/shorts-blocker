@@ -47,9 +47,10 @@ function ensureCounter() {
   counterEl.id = 'sb-counter';
   counterEl.innerHTML =
     '<span class="sb-dot"></span>' +
-    '<span class="sb-txt">0:00</span>' +
-    '<span class="sb-sep">/</span>' +
-    '<span class="sb-lim">10:00</span>';
+    '<div class="sb-body">' +
+    '<span class="sb-label">오늘 쇼츠 시청</span>' +
+    '<span class="sb-time"><span class="sb-txt">0:00</span><span class="sb-sep"> / </span><span class="sb-lim">10:00</span></span>' +
+    '</div>';
   document.body.appendChild(counterEl);
   return counterEl;
 }

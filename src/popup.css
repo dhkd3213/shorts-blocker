@@ -97,6 +97,8 @@ body {
 .opt-text { display: flex; flex-direction: column; gap: 3px; }
 .opt-title { font-size: 13px; font-weight: 600; }
 .opt-desc { font-size: 11px; color: var(--dim); line-height: 1.35; }
+.opt-row.dimmed { opacity: 0.4; }
+.opt-row.dimmed .switch { pointer-events: none; }
 
 @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 

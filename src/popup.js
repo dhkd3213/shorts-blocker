@@ -68,6 +68,8 @@ function render() {
   });
 
   $('hide-shorts').checked = status.hideShorts !== false;
+  $('hide-shorts').disabled = off;
+  document.querySelector('.opt-row').classList.toggle('dimmed', off);
 }
 
 async function applyLimit(min) {
