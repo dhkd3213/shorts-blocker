@@ -2,6 +2,9 @@ const $ = (id) => document.getElementById(id);
 const R = 68;
 const C = 2 * Math.PI * R;
 
+// 구글폼 만든 뒤 이 URL만 교체하면 됩니다 (예: https://forms.gle/xxxxxxxx)
+const FEEDBACK_URL = 'https://forms.gle/REPLACE_WITH_YOUR_FORM';
+
 function cssVar(name) {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 }
@@ -99,6 +102,8 @@ $('plus').addEventListener('click', () => applyLimit(currentMin + 1));
 $('hide-shorts').addEventListener('change', async () => {
   await chrome.runtime.sendMessage({ type: 'setHideShorts', value: $('hide-shorts').checked });
 });
+
+$('feedback').href = FEEDBACK_URL;
 
 refresh();
 setInterval(refresh, 1000);

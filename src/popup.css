@@ -104,6 +104,10 @@ body {
 .opt-row.dimmed { opacity: 0.4; }
 .opt-row.dimmed .switch { pointer-events: none; }
 
+/* feedback link */
+.feedback { display: block; text-align: center; font-size: 11.5px; font-weight: 600; color: var(--dim); text-decoration: none; padding: 4px; margin-top: 2px; transition: color 0.15s ease; animation: rise 0.5s ease 0.2s backwards; }
+.feedback:hover { color: var(--coral); }
+
 @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
 .hidden { display: none !important; }
