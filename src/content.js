@@ -136,12 +136,13 @@ function positionCounter() {
     return;
   }
   el.style.display = 'flex';
-  // Sit just OUTSIDE the video's right edge, top-aligned (above the action buttons).
+  // Sit just OUTSIDE the video's right edge, vertically centered (where the eyes are).
   const width = el.offsetWidth || 150;
+  const height = el.offsetHeight || 56;
   let left = rect.right + 12;
   if (left + width > window.innerWidth - 8) left = window.innerWidth - width - 8;
   el.style.left = Math.max(8, left) + 'px';
-  el.style.top = Math.max(64, rect.top + 4) + 'px';
+  el.style.top = Math.max(64, rect.top + rect.height / 2 - height / 2) + 'px';
   el.style.right = 'auto';
 }
 
